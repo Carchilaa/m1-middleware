@@ -34,6 +34,12 @@ func init() {
 			id VARCHAR(255) PRIMARY KEY NOT NULL UNIQUE,
 			name VARCHAR(255) NOT NULL
 		);`,
+		`CREATE TABLE IF NOT EXISTS alerts (
+			id VARCHAR(255) PRIMARY KEY NOT NULL UNIQUE,
+			email VARCHAR(255) NOT NULL,
+			idAgenda VARCHAR(255) NOT NULL,
+
+		);`
 	}
 	for _, scheme := range schemes {
 		if _, err := db.Exec(scheme); err != nil {
