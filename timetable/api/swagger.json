@@ -14,6 +14,61 @@
     },
     "basePath": "/",
     "paths": {
+        "/events": {
+            "get": {
+                "description": "Get all events.",
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get all events.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Event"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
+        "/events/{id}": {
+            "get": {
+                "description": "Get an event by its ID.",
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get an event.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event UUID formatted ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Event"
+                        }
+                    },
+                    "422": {
+                        "description": "Cannot parse id"
+                    },
+                    "500": {
+                        "description": "Something went wrong"
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "description": "Get all users.",
@@ -71,6 +126,41 @@
         }
     },
     "definitions": {
+        "models.Event": {
+            "type": "object",
+            "properties": {
+                "agendaIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "lastUpdate": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
         "models.User": {
             "type": "object",
             "properties": {
