@@ -27,3 +27,29 @@ func PostAgenda(id uuid.UUID, ucaId int, name string) (*models.Agenda, error) {
 
 	return agenda, nil
 }
+
+func GetAllAgendas()([]models.Agenda, error){
+	db, err := helpers.OpenDB()
+	if err != nil{
+		return nil, err
+	}
+	rows, err := db.Query("SELECT * FROM agenda")
+	defer helpers.CloseDB(db)
+	if err != nil {
+		return nil, err
+	}
+
+	agendas := []models.Agenda{}
+	for rows.Next() {
+		var data models.Agenda
+		err = rows.Scan(&data.Id, &data.UcaId, &data.Name)
+		if err != nil {
+			return nil, err
+		}
+		agendas = append(agendas, data)
+	}
+	_ = rows.Close()
+
+	return agendas, err
+
+}

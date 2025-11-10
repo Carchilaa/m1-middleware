@@ -22,7 +22,8 @@ func main() {
 	})
 	
 	r.Route("/agendas", func(r chi.Router) {
-		r.Post("/", agendas.CreateAgendaHandler) // POST /agendas
+		r.Post("/", agendas.CreateAgendaHandler) // POST /agendas // http://localhost:8080/agendas/
+		r.Get("/", agendas.GetAllAgendas) // Get All Agendas
 	})
 
 	logrus.Info("[INFO] Web server started. Now listening on *:8080")

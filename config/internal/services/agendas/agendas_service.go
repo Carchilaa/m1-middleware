@@ -8,6 +8,22 @@ import (
 	agendas_repository "middleware/example/internal/repositories/agendas"
 )
 
+
+func GetAllAgendas()([]models.Agenda, error) {
+    var err error
+
+    agendas, err := agendas_repository.GetAllAgendas()
+
+    if err != nil{
+        logrus.Errorf("Error retrieving agendas: %s", err.Error())
+        return nil, &models.ErrorGeneric{
+            Message: "Something went wrong while retrieving agendas",
+        }
+    }
+
+    return agendas, nil
+}
+
 func PostAgenda(input models.Agenda) (*models.Agenda, error) {
 	uuid, err := uuid.NewV4()
     agenda, err := agendas_repository.PostAgenda(uuid, input.UcaId, input.Name)
