@@ -69,3 +69,16 @@ func GetAgendaById(id uuid.UUID) (*models.Agenda, error){
 	}
 	return &agenda, err
 }
+
+func DeleteAgenda(id uuid.UUID)(error){
+	db, err := helpers.OpenDB()
+	if err != nil{
+		return err
+	}
+	_, err = db.Exec("DELETE FROM agenda WHERE id=?", id.String())
+	if err != nil{
+		return err
+	}
+	helpers.CloseDB(db)
+	return nil
+}

@@ -41,6 +41,20 @@ func GetAgendaById(id uuid.UUID)(*models.Agenda, error){
     return agenda, err
 }
 
+func DeleteAgenda(id uuid.UUID)(error){
+    err := agendas_repository.DeleteAgenda(id)
+    if err != nil{
+        if err.Error() == sql.ErrNoRows.Error(){
+            return nil
+        }
+        logrus.Errorf("error deleting agenda %s: %s", id.String(), err.Error())
+        return &models.ErrorGeneric{
+            Message: fmt.Sprintf("Something went wrong while deleting the agenda %s", id.String()),
+        }
+    }
+    return err
+}
+
 func PostAgenda(input models.Agenda) (*models.Agenda, error) {
 	uuid, err := uuid.NewV4()
     agenda, err := agendas_repository.PostAgenda(uuid, input.UcaId, input.Name)

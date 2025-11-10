@@ -27,6 +27,7 @@ func main() {
 		r.Route("/{id}", func(r chi.Router){
 			r.Use(agendas.Context)
 			r.Get("/", agendas.GetAgenda)
+			r.Delete("/", agendas.DeleteAgenda)
 		})
 	})
 
