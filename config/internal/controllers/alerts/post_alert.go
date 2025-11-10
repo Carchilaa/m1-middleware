@@ -8,31 +8,32 @@ import (
 	"net/http"
 )
 
-// PutAlert
+// PostAlert
 // @Tags         alerts
-// @Summary      Update alert with id.
-// @Description  Update alert with id.
+// @Summary      Create new alert.
+// @Description  Create new alert.
 // @Success      200            {array}  models.Alerts
-// @Failure      500             "Something went wrong while updating alert {id}"
+// @Failure      500             "Something went wrong while creating alert {id}"
 // @Router       /alerts [put]
-type UpdateAlertRequest struct{
+type NewAlertRequest struct{
 	Email string `json:"email"`
 	AgendaId uuid.UUID `json:"agendaID"`
 }
 
 
-func PutAlert(w http.ResponseWriter, r *http.Request) {
-	var req UpdateAlertRequest
+func PostAlert(w http.ResponseWriter, r *http.Request) {
+	var req NewAlertRequest
 
+	//Vérifier que le body n'est pas nul
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
 		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
 		return
 	}
 
-	ctx := r.Context()
-	id, _ := ctx.Value("alertId").(uuid.UUID)
+	//Génère nouvel id
+	id := uuid.Must(uuid.NewV4())
 
-	alert, err := alerts.PutAlert(id, req.Email, req.AgendaId)
+	alert, err := alerts.PostAlert(id, req.Email, req.AgendaId)
 	if err != nil {
 		body, status := helpers.RespondError(err)
 		w.WriteHeader(status)

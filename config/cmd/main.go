@@ -33,14 +33,14 @@ func main() {
 	})
 
 	r.Route("/alerts", func(r chi.Router) {
-		r.Get("/", alerts.GetAlerts)
-		r.Put("/", alerts.PutAlert)
+		r.Get("/", alerts.GetAlerts) //Get all alerts
+		r.Post("/", alerts.PostAlert) //Create a new alert
 		r.Route("/{id}", func(r chi.Router){
 			r.Use(alerts.Context)
-			r.Get("/", alerts.GetAlertById)
-			//r.Delete("/", agendas.DeleteAgenda)
+			r.Get("/", alerts.GetAlertById) //Get an alert with id
+			r.Delete("/", alerts.DeleteAlert) //Delete an alert with id
+			r.Put("/", alerts.PutAlert) //Update alert with id
 		})
-		// r.Post("/", agendas.CreateAgendaHandler) // POST /agendas // http://localhost:8080/agendas/
 	})
 
 	logrus.Info("[INFO] Web server started. Now listening on *:8080")

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// GetUsers
+// GetAlerts
 // @Tags         alerts
 // @Summary      Get all alerts.
 // @Description  Get all alerts.

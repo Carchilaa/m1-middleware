@@ -50,7 +50,7 @@ func GetAlertById(id uuid.UUID) (*models.Alert, error) {
 	return &alert, err
 }
 
-func PutAlert(id uuid.UUID, email string, agendaId uuid.UUID) (*models.Alert, error) {
+func PostAlert(id uuid.UUID, email string, agendaId uuid.UUID) (*models.Alert, error) {
 	db, err := helpers.OpenDB()
 	if err != nil {
 		return nil, err
@@ -73,6 +73,43 @@ func PutAlert(id uuid.UUID, email string, agendaId uuid.UUID) (*models.Alert, er
 	return &alert, nil
 }
 
+
+func DeleteAlert(id uuid.UUID) (error) {
+	db, err := helpers.OpenDB()
+	if err != nil {
+		return err
+	}
+	defer helpers.CloseDB(db)
+
+	query := `DELETE FROM alerts WHERE id=?`
+
+	_, err = db.Exec(query, id.String())
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func PutAlert(id uuid.UUID, email string, agendaId uuid.UUID) (*models.Alert, error) {
+	db, err := helpers.OpenDB()
+	if err != nil {
+		return nil, err
+	}
+	defer helpers.CloseDB(db)
+
+	_, err = db.Exec("UPDATE alerts SET email = ?, idAgenda = ? WHERE id = ?", email, agendaId, id)
+	if err != nil {
+		return nil, err
+	}
+
+	UpdatedAlert := models.Alert{
+		Id:       &id,
+		Email:    email,
+		IdAgenda: &agendaId,
+	}
+
+	return &UpdatedAlert, nil
+}
 
 
 
