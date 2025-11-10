@@ -53,3 +53,19 @@ func GetAllAgendas()([]models.Agenda, error){
 	return agendas, err
 
 }
+
+func GetAgendaById(id uuid.UUID) (*models.Agenda, error){
+	db, err := helpers.OpenDB()
+	if err != nil{
+		return nil, err
+	}
+	row := db.QueryRow("SELECT * FROM agenda WHERE id=?", id.String())
+	helpers.CloseDB(db)
+
+	var agenda models.Agenda
+	err = row.Scan(&agenda.Id, &agenda.UcaId, &agenda.Name)
+	if err != nil{
+		return nil, err
+	}
+	return &agenda, err
+}
