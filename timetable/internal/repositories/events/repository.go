@@ -1,7 +1,6 @@
 package events
 
 import (
-	"database/sql"
 	"github.com/gofrs/uuid"
 	"middleware/example/internal/helpers"
 	"middleware/example/internal/models"
@@ -12,8 +11,9 @@ func GetAllEvents() ([]models.Event, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer helpers.CloseDB(db)
+
 	rows, err := db.Query("SELECT id, uid, description, name, start, end, location, lastUpdate FROM events")
-	helpers.CloseDB(db)
 	if err != nil {
 		return nil, err
 	}

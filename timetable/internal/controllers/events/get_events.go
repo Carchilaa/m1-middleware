@@ -3,7 +3,7 @@ package events
 import (
 	"encoding/json"
 	"middleware/example/internal/helpers"
-	eventService "middleware/example/internal/services/events"
+	"middleware/example/internal/services/events"
 	"net/http"
 )
 
