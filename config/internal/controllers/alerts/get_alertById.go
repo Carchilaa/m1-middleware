@@ -1,4 +1,4 @@
-package alert
+package alerts
 
 import (
 	"encoding/json"
@@ -10,14 +10,14 @@ import (
 
 // GetUser
 // @Tags         alerts
-// @Summary      Get an alert.
-// @Description  Get an alert.
+// @Summary      Get an alert by id.
+// @Description  Get an alert by id.
 // @Param        id           	path      string  true  "Alert UUID formatted ID"
 // @Success      200            {object}  models.Alert
 // @Failure      422            "Cannot parse id"
 // @Failure      500            "Something went wrong"
 // @Router       /alerts/{id} [get]
-func GetAlert(w http.ResponseWriter, r *http.Request) {
+func GetAlertById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	alertId, _ := ctx.Value("alertId").(uuid.UUID) // getting key set in context.go
 

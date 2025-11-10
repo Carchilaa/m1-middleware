@@ -15,8 +15,8 @@ import (
 // @Failure      500             "Something went wrong"
 // @Router       /alerts [get]
 func GetAlerts(w http.ResponseWriter, _ *http.Request) {
-	// calling service
-	alerts, err := alerts.GetAlerts()
+
+	allAlerts, err := alerts.GetAlerts()
 	if err != nil {
 		body, status := helpers.RespondError(err)
 		w.WriteHeader(status)
@@ -27,7 +27,7 @@ func GetAlerts(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	body, _ := json.Marshal(alerts)
+	body, _ := json.Marshal(allAlerts)
 	_, _ = w.Write(body)
 	return
 }

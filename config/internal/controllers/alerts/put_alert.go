@@ -17,7 +17,7 @@ import (
 // @Router       /alerts [put]
 type PutAlertRequest struct{
 	Email string `json:"email"`
-	AgendaId uuid.UUID `json:"agendaId"`
+	AgendaId uuid.UUID `json:"agendaID"`
 }
 
 
@@ -33,7 +33,7 @@ func PutAlert(w http.ResponseWriter, r *http.Request) {
 	//Génère nouvel id
 	id := uuid.Must(uuid.NewV4())
 
-	alerts, err := alerts.PutAlert(id, req.Email, req.AgendaId)
+	alert, err := alerts.PutAlert(id, req.Email, req.AgendaId)
 	if err != nil {
 		body, status := helpers.RespondError(err)
 		w.WriteHeader(status)
@@ -44,7 +44,7 @@ func PutAlert(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	body, _ := json.Marshal(alerts)
+	body, _ := json.Marshal(alert)
 	_, _ = w.Write(body)
 	return
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"middleware/example/internal/controllers/users"
 	"middleware/example/internal/controllers/agendas"
+	"middleware/example/internal/controllers/alerts"
 	"middleware/example/internal/helpers"
 	_ "middleware/example/internal/models"
 	"net/http"
@@ -29,6 +30,17 @@ func main() {
 			r.Get("/", agendas.GetAgenda)
 			r.Delete("/", agendas.DeleteAgenda)
 		})
+	})
+
+	r.Route("/alerts", func(r chi.Router) {
+		r.Get("/", alerts.GetAlerts)
+		r.Put("/", alerts.PutAlert)
+		r.Route("/{id}", func(r chi.Router){
+			r.Use(alerts.Context)
+			r.Get("/", alerts.GetAlertById)
+			//r.Delete("/", agendas.DeleteAgenda)
+		})
+		// r.Post("/", agendas.CreateAgendaHandler) // POST /agendas // http://localhost:8080/agendas/
 	})
 
 	logrus.Info("[INFO] Web server started. Now listening on *:8080")

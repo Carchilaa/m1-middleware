@@ -1,4 +1,4 @@
-package alert
+package alerts
 
 import (
 	"database/sql"
@@ -11,16 +11,13 @@ import (
 
 func GetAlerts() ([]models.Alert, error) {
 	var err error
-	// calling repository
 	alerts, err := repository.GetAlerts()
-	// managing errors
 	if err != nil {
-		logrus.Errorf("error retrieving alerts : %s", err.Error())
+		logrus.Errorf("Error while retrieving alerts : %s", err.Error())
 		return nil, &models.ErrorGeneric{
-			Message: "Something went wrong while retrieving alerts",
+			Message: "Something went wrong while retrieving alerts.",
 		}
 	}
-
 	return alerts, nil
 }
 
@@ -29,14 +26,21 @@ func GetAlertById(id uuid.UUID) (*models.Alert, error) {
 	if err != nil {
 		if err.Error() == sql.ErrNoRows.Error() {
 			return nil, &models.ErrorNotFound{
-				Message: "alert not found",
+				Message: fmt.Sprintf("Alert (id : %s) not found", id.String()),
 			}
 		}
-		logrus.Errorf("error retrieving alert %s : %s", id.String(), err.Error())
+		logrus.Errorf("Error retrieving alert %s : %s", id.String(), err.Error())
 		return nil, &models.ErrorGeneric{
 			Message: fmt.Sprintf("Something went wrong while retrieving alert %s", id.String()),
 		}
 	}
+	return alert, err
+}
 
+func PutAlert(id uuid.UUID, email string, agendaId uuid.UUID) (*models.Alert, error) {
+	alert, err := repository.PutAlert(id, email, agendaId)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create alert : %s", err)
+	}
 	return alert, err
 }
