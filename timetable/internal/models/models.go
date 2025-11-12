@@ -5,11 +5,6 @@ import (
 	"time"
 )
 
-type User struct {
-	Id   *uuid.UUID `json:"id"`
-	Name string     `json:"name"`
-}
-
 type Event struct {
 	Id          *uuid.UUID  `json:"id"`
 	AgendaIds   []uuid.UUID `json:"agendaIds"`

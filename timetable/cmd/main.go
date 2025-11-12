@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/sirupsen/logrus"
-	"middleware/example/internal/controllers/users"
 	"middleware/example/internal/controllers/events"
 	"middleware/example/internal/helpers"
 	_ "middleware/example/internal/models"
@@ -12,14 +11,6 @@ import (
 
 func main() {
 	r := chi.NewRouter()
-
-	r.Route("/users", func(r chi.Router) { // route /users
-		r.Get("/", users.GetUsers)            // GET /users
-		r.Route("/{id}", func(r chi.Router) { // route /users/{id}
-			r.Use(users.Context)      // Use Context method to get user ID
-			r.Get("/", users.GetUser) // GET /users/{id}
-		})
-	})
 
 	r.Route("/events", func(r chi.Router) { // route /events
 		r.Get("/", events.GetEvents)            // GET /events
@@ -39,10 +30,6 @@ func init() {
 		logrus.Fatalf("error while opening database : %s", err.Error())
 	}
 	schemes := []string{
-		`CREATE TABLE IF NOT EXISTS users (
-			id VARCHAR(255) PRIMARY KEY NOT NULL UNIQUE,
-			name VARCHAR(255) NOT NULL
-		);`,
 		`CREATE TABLE IF NOT EXISTS events (
 			id VARCHAR(255) PRIMARY KEY NOT NULL UNIQUE,
 			uid VARCHAR(255) NOT NULL,
