@@ -68,61 +68,6 @@
                     }
                 }
             }
-        },
-        "/users": {
-            "get": {
-                "description": "Get all users.",
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get all users.",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.User"
-                            }
-                        }
-                    },
-                    "500": {
-                        "description": "Something went wrong"
-                    }
-                }
-            }
-        },
-        "/users/{id}": {
-            "get": {
-                "description": "Get a user.",
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get a user.",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User UUID formatted ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/models.User"
-                        }
-                    },
-                    "422": {
-                        "description": "Cannot parse id"
-                    },
-                    "500": {
-                        "description": "Something went wrong"
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -157,17 +102,6 @@
                     "type": "string"
                 },
                 "uid": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.User": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
                     "type": "string"
                 }
             }
