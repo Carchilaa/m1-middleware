@@ -10,6 +10,28 @@ import (
 )
 
 func main() {
+	// ⚠️ IMPORTANT : Initialiser NATS AVANT toute utilisation !
+    helpers.InitNats()
+
+    // TEST : publier un message
+    err := helpers.PublishEventUpdated(map[string]string{
+        "message": "Hello depuis Timetable",
+    })
+    if err != nil {
+        logrus.Println("Erreur Publish:", err)
+    }
+
+    // TEST : souscription
+    helpers.SubscribeToEventsUpdated(func(data []byte) {
+        logrus.Println("Message reçu:", string(data))
+    })
+
+    // Ici tu lanceras ensuite :
+    // runMyConsumer()
+    // runMyServer()
+
+    select {} // empêcher l'arrêt du programme
+
 	r := chi.NewRouter()
 
 	r.Route("/events", func(r chi.Router) { // route /events
