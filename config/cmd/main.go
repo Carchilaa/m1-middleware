@@ -29,6 +29,7 @@ func main() {
 			r.Use(agendas.Context)
 			r.Get("/", agendas.GetAgenda)
 			r.Delete("/", agendas.DeleteAgenda)
+			r.Put("/", agendas.PutAgenda) //Update alert with id
 		})
 	})
 

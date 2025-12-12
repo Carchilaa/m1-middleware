@@ -82,3 +82,24 @@ func DeleteAgenda(id uuid.UUID)(error){
 	helpers.CloseDB(db)
 	return nil
 }
+
+func PutAgenda(id uuid.UUID, ucaId int, name string) (*models.Agenda, error) {
+	db, err := helpers.OpenDB()
+	if err != nil {
+		return nil, err
+	}
+	defer helpers.CloseDB(db)
+
+	_, err = db.Exec("UPDATE agenda SET ucaId = ?, name = ? WHERE id = ?", ucaId, name, id)
+	if err != nil {
+		return nil, err
+	}
+
+	UpdatedAgenda := models.Agenda{
+		Id:       &id,
+		UcaId:    ucaId,
+		Name: name,
+	}
+
+	return &UpdatedAgenda, nil
+}

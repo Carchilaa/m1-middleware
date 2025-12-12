@@ -67,3 +67,11 @@ func PostAgenda(input models.Agenda) (*models.Agenda, error) {
 
     return agenda, nil
 }
+
+func PutAgendas(id uuid.UUID,input models.Agenda) (*models.Agenda, error) {
+	agenda, err := agendas_repository.PutAgenda(id, input.UcaId, input.Name)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to update the agenda : %s", err)
+	}
+	return agenda, err
+}
