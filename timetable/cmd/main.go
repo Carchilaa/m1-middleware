@@ -7,9 +7,38 @@ import (
 	"middleware/example/internal/helpers"
 	_ "middleware/example/internal/models"
 	"net/http"
+	"time"
+	eventsService "middleware/example/internal/services/events" 
 )
 
 func main() {
+	// 1. Initialisation de NATS (Connexion + Stream)
+	// On le fait au tout début pour être sûr que c'est prêt avant de recevoir du trafic.
+	logrus.Info("[INFO] Initializing NATS...")
+	helpers.InitNats()
+
+	// 2. Lancement du Consumer JetStream dans une goroutine
+	go func() {
+		// Petite pause de sécurité pour être sûr que la connexion est stable
+		time.Sleep(1 * time.Second)
+
+		logrus.Info("[NATS] Démarrage du Consumer JetStream...")
+		
+		// a. Création/Récupération du Consumer
+		consumer, err := eventsService.EventConsumer()
+		if err != nil {
+			logrus.Errorf("[NATS] Erreur création consumer : %v", err)
+			return
+		}
+
+		// b. Lancement de la consommation
+		err = eventsService.Consume(consumer)
+		if err != nil {
+			logrus.Errorf("[NATS] Erreur lors de la consommation : %v", err)
+		}
+	}()
+
+	// 3. Configuration du Serveur HTTP (API REST)
 	r := chi.NewRouter()
 
 	r.Route("/events", func(r chi.Router) { // route /events
@@ -20,6 +49,7 @@ func main() {
 		})
 	})
 
+	// 4. Démarrage du serveur (C'est CELA qui bloque le programme et l'empêche de s'éteindre)
 	logrus.Info("[INFO] Web server started. Now listening on *:8081")
 	logrus.Fatalln(http.ListenAndServe(":8081", r))
 }
