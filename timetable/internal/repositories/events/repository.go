@@ -6,6 +6,8 @@ import (
 	"middleware/example/internal/models"
 )
 
+// API REST fait uniquement les Read
+
 func GetAllEvents() ([]models.Event, error) {
 	db, err := helpers.OpenDB()
 	if err != nil {
@@ -107,4 +109,47 @@ func GetEventById(id uuid.UUID) (*models.Event, error) {
 	ev.AgendaIds = agendaIds
 
 	return &ev, nil
+}
+
+// Consumer NATS fait les Create, Update et Read (avec le UID)
+
+func GetEventByUID(uid string) (*models.Event, error) {
+	db, err := helpers.OpenDB()
+	if err != nil {
+		return nil, err
+	}
+	defer helpers.CloseDB(db)
+
+	row := db.QueryRow("SELECT id, uid, description, name, start, end, location, lastUpdate FROM events WHERE uid=?", uid)
+
+	var ev models.Event
+	err = row.Scan(&ev.Id, &ev.Uid, &ev.Description, &ev.Name, &ev.Start, &ev.End, &ev.Location, &ev.LastUpdate)
+	if err != nil {
+		return nil, err // retourne une erreur si non trouvé, c'est ce qu'on veut
+	}
+	return &ev, nil
+}
+
+func CreateEvent(ev *models.Event) error {
+	db, err := helpers.OpenDB()
+	if err != nil {
+		return err
+	}
+	defer helpers.CloseDB(db)
+
+	statement, _ := db.Prepare("INSERT INTO events (id, uid, description, name, start, end, location, lastUpdate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+	_, err = statement.Exec(ev.Id.String(), ev.Uid, ev.Description, ev.Name, ev.Start, ev.End, ev.Location, ev.LastUpdate)
+	
+    return err
+}
+
+func UpdateEvent(ev *models.Event) error {
+	db, err := helpers.OpenDB()
+	if err != nil {
+		return err
+	}
+	defer helpers.CloseDB(db)
+	statement, _ := db.Prepare("UPDATE events SET description=?, name=?, start=?, end=?, location=?, lastUpdate=? WHERE uid=?")
+	_, err = statement.Exec(ev.Description, ev.Name, ev.Start, ev.End, ev.Location, ev.LastUpdate, ev.Uid)
+	return err
 }

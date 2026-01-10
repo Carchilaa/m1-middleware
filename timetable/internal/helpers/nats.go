@@ -6,21 +6,20 @@ import (
     "github.com/nats-io/nats.go"
 )
 
-// Variables globales pour être réutilisées
-var nc *nats.Conn
+var NatsConn *nats.Conn
 var js nats.JetStreamContext
 
 func InitNats() {
     var err error
 
 	// 1. Connexion au serveur
-	nc, err = nats.Connect(nats.DefaultURL) // "nats://127.0.0.1:4222"
-	if err != nil {
+    NatsConn, err = nats.Connect(nats.DefaultURL) // "nats://127.0.0.1:4222"
+    if err != nil {
         log.Fatal("Erreur connexion NATS:", err)
     }
 
 	// 2. Contexte JetStream
-    js, err = nc.JetStream()
+    js, err = NatsConn.JetStream()
 	if err != nil {
         log.Fatal("Erreur JetStream:", err)
     }

@@ -7,6 +7,8 @@ import (
 	"middleware/example/internal/helpers"
 	_ "middleware/example/internal/models"
 	"net/http"
+	"time"
+	eventsService "middleware/example/internal/services/events" 
 )
 
 func main() {
@@ -15,12 +17,26 @@ func main() {
 	logrus.Info("[INFO] Initializing NATS...")
 	helpers.InitNats()
 
-	// 2. Lancement du Consumer (Souscription)
-	// Le Timetable écoute les messages du Scheduler.
-	helpers.SubscribeToEventsUpdated(func(data []byte) {
-		logrus.Infof("[NATS] Message reçu : %s", string(data))
-		// appel à la fonction de service pour traiter le JSON
-	})
+	// 2. Lancement du Consumer JetStream dans une goroutine
+	go func() {
+		// Petite pause de sécurité pour être sûr que la connexion est stable
+		time.Sleep(1 * time.Second)
+
+		logrus.Info("[NATS] Démarrage du Consumer JetStream...")
+		
+		// a. Création/Récupération du Consumer
+		consumer, err := eventsService.EventConsumer()
+		if err != nil {
+			logrus.Errorf("[NATS] Erreur création consumer : %v", err)
+			return
+		}
+
+		// b. Lancement de la consommation
+		err = eventsService.Consume(consumer)
+		if err != nil {
+			logrus.Errorf("[NATS] Erreur lors de la consommation : %v", err)
+		}
+	}()
 
 	// 3. Configuration du Serveur HTTP (API REST)
 	r := chi.NewRouter()
