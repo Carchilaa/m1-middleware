@@ -10,28 +10,19 @@ import (
 )
 
 func main() {
-	// ⚠️ IMPORTANT : Initialiser NATS AVANT toute utilisation !
-    helpers.InitNats()
+	// 1. Initialisation de NATS (Connexion + Stream)
+	// On le fait au tout début pour être sûr que c'est prêt avant de recevoir du trafic.
+	logrus.Info("[INFO] Initializing NATS...")
+	helpers.InitNats()
 
-    // TEST : publier un message
-    err := helpers.PublishEventUpdated(map[string]string{
-        "message": "Hello depuis Timetable",
-    })
-    if err != nil {
-        logrus.Println("Erreur Publish:", err)
-    }
+	// 2. Lancement du Consumer (Souscription)
+	// Le Timetable écoute les messages du Scheduler.
+	helpers.SubscribeToEventsUpdated(func(data []byte) {
+		logrus.Infof("[NATS] Message reçu : %s", string(data))
+		// appel à la fonction de service pour traiter le JSON
+	})
 
-    // TEST : souscription
-    helpers.SubscribeToEventsUpdated(func(data []byte) {
-        logrus.Println("Message reçu:", string(data))
-    })
-
-    // Ici tu lanceras ensuite :
-    // runMyConsumer()
-    // runMyServer()
-
-    select {} // empêcher l'arrêt du programme
-
+	// 3. Configuration du Serveur HTTP (API REST)
 	r := chi.NewRouter()
 
 	r.Route("/events", func(r chi.Router) { // route /events
@@ -42,6 +33,7 @@ func main() {
 		})
 	})
 
+	// 4. Démarrage du serveur (C'est CELA qui bloque le programme et l'empêche de s'éteindre)
 	logrus.Info("[INFO] Web server started. Now listening on *:8081")
 	logrus.Fatalln(http.ListenAndServe(":8081", r))
 }
