@@ -1,4 +1,4 @@
-package users
+package alerts
 
 import (
 	"context"
@@ -11,14 +11,9 @@ import (
 )
 
 // Context
-/* This method is used to get ressource ID from url
-*
-* In REST, urls are formed like this : users/{specific_collection_ressource_id}/another_collection/{another_collection_ressource_id}...
-* In this example, it could be users/{user_id} to get specific user infos or users/{user_id}/animals/{animal_id} to get specific user's specific animal
- */
 func Context(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userId, err := uuid.FromString(chi.URLParam(r, "id"))
+		alertId, err := uuid.FromString(chi.URLParam(r, "id"))
 		if err != nil {
 			body, status := helpers.RespondError(&models.ErrorUnprocessableEntity{
 				Message: fmt.Sprintf("cannot parse id (%s) as UUID", chi.URLParam(r, "id"))})
@@ -30,7 +25,7 @@ func Context(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userId", userId) // We fill context with a Key-valued variable
+		ctx := context.WithValue(r.Context(), "alertId", alertId) // We fill context with a Key-valued variable
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
