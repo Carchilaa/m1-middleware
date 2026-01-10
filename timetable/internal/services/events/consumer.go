@@ -48,6 +48,11 @@ func EventConsumer() (jetstream.Consumer, error) {
 
 // Consume lance la boucle d'écoute
 func Consume(consumer jetstream.Consumer) (err error) {
+
+
+	//On recupere le contexte JetStream pour pouvoir publier des alertes
+	js, _ := jetstream.New(helpers.NatsConn)
+	ctx := context.Background() 
 	logrus.Info("Démarrage du traitement des messages...")
     
 	cc, err := consumer.Consume(func(msg jetstream.Msg) {
@@ -80,9 +85,11 @@ func Consume(consumer jetstream.Consumer) (err error) {
 		} else {
 			// -> COURS EXISTANT : On cherche les modifs
             hasChanged := false
-            
+            var alerteMsg string
+
             // changement de salle
             if incomingEvent.Location != existingEvent.Location {
+				alerteMsg = "Changement de salle: " + existingEvent.Location + " -> " + incomingEvent.Location
                 logrus.Warnf("ALERTE : Changement de salle pour %s (%s -> %s)", 
                     incomingEvent.Name, existingEvent.Location, incomingEvent.Location)
                 hasChanged = true
@@ -92,6 +99,7 @@ func Consume(consumer jetstream.Consumer) (err error) {
             
             // changement d'heure
             if !incomingEvent.Start.Equal(existingEvent.Start) {
+				alerteMsg = "Changement d'horaire pour " + incomingEvent.Name
                  logrus.Warnf("ALERTE : Changement d'horaire pour %s", incomingEvent.Name)
                  hasChanged = true
 
@@ -101,6 +109,21 @@ func Consume(consumer jetstream.Consumer) (err error) {
             if hasChanged {
                 incomingEvent.LastUpdate = time.Now()
                 _ = repository.UpdateEvent(&incomingEvent)
+
+				alertPayload := models.AlertMessage{
+					AgendaID: incomingEvent.AgendaID,
+					EventName: incomingEvent.Name,
+					Message: alerteMsg,
+				}
+
+				payloadBytes, _ := json.Marshal(alertPayload)
+
+				_, errPublish := js.Publish(ctx, "ALERTS.modification", payloadBytes)
+				if errPublish != nil{
+					logrus.Errorf("Erreur publication alerte NATS: %s", errPublish)
+				}else{
+					logrus.Infof("Alerte publiee vers le NATS pour %s", incomingEvent.Name)
+				}
             }
 		}
 	})
