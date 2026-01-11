@@ -1,17 +1,16 @@
 package models
 
 import (
-	"github.com/gofrs/uuid"
-	"time"
+	"embed"
 )
 
 // Remplace par l'URL de ton API Config (localhost ou nom du service docker)
-const ConfigAPIUrl = "http://localhost:8080/alerts/{idAgenda}" 
+const ConfigAPIUrl = "http://localhost:8080/alerts/" 
 const MailAPIUrl = "https://mail.edu.forestier.re/api/send"
-const MailToken = "" //TODO : mettre le token 
+const MailToken = "DUDSXtmydAkCQnCsXyasgVrzcWWxAdnXPdkQfQjq" //TODO : mettre le token 
 
 //go:embed templates
-var embeddedTemplates embed.FS
+var EmbeddedTemplates embed.FS
 
 // Structure pour la réponse de l'API Config
 type AlertConfig struct {
@@ -53,10 +52,5 @@ type MailBody struct {
     To      []string `json:"to"`
     Subject string   `json:"subject"`
     Body    string   `json:"body"`
-}
-
-// FrontMatter sert à parser l'en-tête du template
-type FrontMatter struct {
-    Subject string `yaml:"subject"`
 }
 

@@ -1,28 +1,20 @@
-package consumer
+package services
 
 import (
-	"bytes"
+	
 	"context"
-	"embed"
 	"encoding/json"
-	"fmt"
-	"html/template"
-	"net/http"
-	"strings"
-	"time"
 
-	"github.com/adrg/frontmatter"
+	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
 	"github.com/sirupsen/logrus"
-	"github.com/gofrs/uuid"
 
-	"alerter/services"
 	"alerter/models"
 )
 
 // StartAlerterConsumer lance le processus
-func StartAlerterConsumer() {
-	js, _ := jetstream.New(helpers.NatsConn)
+func StartAlerterConsumer(nc *nats.Conn) {
+	js, _ := jetstream.New(nc)
 	ctx := context.Background()
 
 	// 1. Création du Stream "ALERTS" s'il n'existe pas
@@ -52,7 +44,7 @@ func StartAlerterConsumer() {
 		msg.Ack()
 
 		// A. Décoder le message
-		var alertMsg models.AlertMessage
+		var alertMsg models.Modification
 		if err := json.Unmarshal(msg.Data(), &alertMsg); err != nil {
 			logrus.Errorf("Alerter: Erreur JSON: %v", err)
 			return
@@ -74,7 +66,7 @@ func StartAlerterConsumer() {
 
 		// C. Préparer le contenu du mail (Template)
         // Assure-toi d'avoir "templates/notification.html" dans ton dossier
-		bodyContent, subject, err := parseTemplate("notification.html", alertMsg)
+		bodyContent, subject, err := parseTemplate("alert.html", alertMsg)
 		if err != nil {
 			logrus.Errorf("Alerter: Erreur Template: %v", err)
 			return
