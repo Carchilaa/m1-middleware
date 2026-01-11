@@ -1,0 +1,11 @@
+---
+subject: Changement d'emploi du temps !
+---
+
+Bonjour,
+
+Une modification a été détectée sur le cours : {{ .EventName }}
+
+Détail : {{ .Message }}
+
+Bon courage !

@@ -2,26 +2,26 @@ package alerts
 
 import (
 	"encoding/json"
-	"github.com/gofrs/uuid"
 	"middleware/example/internal/helpers"
-	"middleware/example/internal/services/alerts"
 	"net/http"
+	agenda_service "middleware/example/internal/services/alerts"
+	"github.com/gofrs/uuid"
 )
 
 // GetUser
 // @Tags         alerts
 // @Summary      Get an alert by id.
 // @Description  Get an alert by id.
-// @Param        id           	path      string  true  "Alert UUID formatted ID"
+// @Param        idAgenda          	path      string  true
 // @Success      200            {object}  models.Alert
 // @Failure      422            "Cannot parse id"
 // @Failure      500            "Something went wrong"
-// @Router       /alerts/{id} [get]
+// @Router       /alerts/{idAgenda} [get]
 func GetAlertById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	alertId, _ := ctx.Value("alertId").(uuid.UUID) // getting key set in context.go
+	alertIdAgenda, _ := ctx.Value("IdAgenda").(uuid.UUID)
 
-	alert, err := alerts.GetAlertById(alertId)
+	alert, err := agenda_service.GetAlertById(alertIdAgenda)
 	if err != nil {
 		body, status := helpers.RespondError(err)
 		w.WriteHeader(status)

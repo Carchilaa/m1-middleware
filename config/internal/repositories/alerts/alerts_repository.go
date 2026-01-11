@@ -40,7 +40,7 @@ func GetAlertById(id uuid.UUID) (*models.Alert, error) {
 	}
 	defer helpers.CloseDB(db)
 
-	row := db.QueryRow("SELECT * FROM alerts WHERE id=?", id.String())
+	row := db.QueryRow("SELECT * FROM alerts WHERE idAgenda=?", id.String())
 
 	var alert models.Alert
 	err = row.Scan(&alert.Id, &alert.Email, &alert.IdAgenda)

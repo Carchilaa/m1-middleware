@@ -26,7 +26,7 @@ func main() {
 	r.Route("/alerts", func(r chi.Router) {
 		r.Get("/", alerts.GetAlerts) //Get all alerts
 		r.Post("/", alerts.PostAlert) //Create a new alert
-		r.Route("/{id}", func(r chi.Router){
+		r.Route("/{idAgenda}", func(r chi.Router) {
 			r.Use(alerts.Context)
 			r.Get("/", alerts.GetAlertById) //Get an alert with id
 			r.Delete("/", alerts.DeleteAlert) //Delete an alert with id
