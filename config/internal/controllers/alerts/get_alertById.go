@@ -2,10 +2,10 @@ package alerts
 
 import (
 	"encoding/json"
-	"github.com/gofrs/uuid"
 	"middleware/example/internal/helpers"
-	"middleware/example/internal/services/alerts"
 	"net/http"
+	agenda_service "middleware/example/internal/services/alerts"
+	"github.com/gofrs/uuid"
 )
 
 // GetUser
@@ -19,9 +19,9 @@ import (
 // @Router       /alerts/{idAgenda} [get]
 func GetAlertById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	alertIdAgenda, _ := ctx.Value("IdAgenda")
+	alertIdAgenda, _ := ctx.Value("IdAgenda").(uuid.UUID)
 
-	alert, err := alerts.GetAlertById(alertIdAgenda)
+	alert, err := agenda_service.GetAlertById(alertIdAgenda)
 	if err != nil {
 		body, status := helpers.RespondError(err)
 		w.WriteHeader(status)

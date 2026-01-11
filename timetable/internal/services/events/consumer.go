@@ -111,9 +111,9 @@ func Consume(consumer jetstream.Consumer) (err error) {
                 _ = repository.UpdateEvent(&incomingEvent)
 
 				alertPayload := models.AlertMessage{
-					AgendaID: incomingEvent.AgendaID,
+					AgendaIds: existingEvent.AgendaIds, 
 					EventName: incomingEvent.Name,
-					Message: alerteMsg,
+					Message:   alerteMsg,
 				}
 
 				payloadBytes, _ := json.Marshal(alertPayload)
