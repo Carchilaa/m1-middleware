@@ -12,7 +12,6 @@ import (
 	"alerter/models"
 )
 
-// StartAlerterConsumer lance le processus
 func StartAlerterConsumer(nc *nats.Conn) {
 	js, _ := jetstream.New(nc)
 	ctx := context.Background()
@@ -23,7 +22,6 @@ func StartAlerterConsumer(nc *nats.Conn) {
 		Subjects: []string{"ALERTS.>"},
 	})
 	if err != nil {
-        // On ignore l'erreur si le stream existe déjà, sinon on log
 		logrus.Warnf("Stream ALERTS probablement existant ou erreur: %v", err)
 	}
 
@@ -61,7 +59,6 @@ func StartAlerterConsumer(nc *nats.Conn) {
             // 1. Récupérer les abonnés pour CET agenda précis
             subscribers, err := getSubscribers(agendaID)
             if err != nil {
-                // On log l'erreur mais on continue pour les autres agendas
                 logrus.Errorf("Alerter: Erreur API Config pour agenda %s : %v", agendaID, err)
                 continue 
             }
@@ -77,7 +74,7 @@ func StartAlerterConsumer(nc *nats.Conn) {
                 return
             }
 
-            // 3. Envoyer aux abonnés de CET agenda
+            // 3. Envoyer aux abonnés de ce agenda
             for _, sub := range subscribers {
                 err := sendMail(sub.Email, subject, bodyContent)
                 if err != nil {

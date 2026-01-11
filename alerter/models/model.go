@@ -4,21 +4,19 @@ import (
 	"embed"
 )
 
-// Remplace par l'URL de ton API Config (localhost ou nom du service docker)
+
 const ConfigAPIUrl = "http://localhost:8080/alerts/" 
 const MailAPIUrl = "https://mail-api.edu.forestier.re/mail"
-const MailToken = "TImsTooRzjVIBIpSuUEejNpCrTzAYKToYJmLVCkp" //TODO : mettre le token 
+const MailToken = "TImsTooRzjVIBIpSuUEejNpCrTzAYKToYJmLVCkp"
 
-//go:embed templates
+
 var EmbeddedTemplates embed.FS
 
-// Structure pour la réponse de l'API Config
+
 type AlertConfig struct {
     Email string `json:"email"`
-    // Ajoute d'autres champs si ton API Config renvoie plus d'infos
 }
 
-// Structure pour l'envoi de mail (Forestier API)
 type MailRequest struct {
     Recipient string `json:"recipient"`
     Subject   string `json:"subject"`
@@ -30,22 +28,20 @@ type FrontMatter struct {
 }
 
 
-// Modification représente le message reçu via NATS (depuis le Timetable Consumer)
 type Modification struct {
     AgendaIDs []string `json:"agenda_ids"`
     EventName string `json:"event_name"`
     Message   string `json:"message"`
-    // Ajoute d'autres champs si nécessaire
+    
 }
 
-// Alert représente une alerte reçue depuis ton API Config
+
 type Alert struct {
     ID       int    `json:"id"`
     AgendaID string `json:"agenda_id"`
     Email    string `json:"email"`
 }
 
-// MailBody représente le corps de la requête vers l'API mail de Forestier
 type MailBody struct {
     From    string   `json:"from"`
     To      []string `json:"to"`

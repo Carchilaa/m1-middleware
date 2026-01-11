@@ -16,7 +16,7 @@ import (
 )
 
 func getSubscribers(agendaID string) ([]models.AlertConfig, error) {
-    // Appel HTTP GET vers ton API Config
+    // Appel HTTP GET vers l'API Config
 	resp, err := http.Get(models.ConfigAPIUrl + agendaID)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,6 @@ func getSubscribers(agendaID string) ([]models.AlertConfig, error) {
 }
 
 func parseTemplate(path string, data interface{}) (string, string, error) {
-    // Utilise "templates/" + path car embed est à la racine du package souvent
 	fileContent, err := models.EmbeddedTemplates.ReadFile("templates/" + path)
 	if err != nil {
 		return "", "", err
@@ -82,7 +81,6 @@ func sendMail(to, subject, body string) error {
 
     responseBody, _:= io.ReadAll(resp.Body)
     
-    // Log important pour voir si l'API accepte ou rejette
     logrus.Infof("Réponse API Mail pour %s : Code=%d Body=%s", to, resp.StatusCode, string(responseBody))
 
     if resp.StatusCode < 200 || resp.StatusCode >= 300 {
