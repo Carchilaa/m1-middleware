@@ -33,6 +33,16 @@ func InitNats() {
     if err != nil {
         log.Printf("Info Stream (peut-être déjà existant): %v", err)
     }
+
+    _, err = js.AddStream(&nats.StreamConfig{
+        Name:     "ALERTS",
+        Subjects: []string{"ALERTS.>"},
+    })
+    if err != nil {
+        log.Printf("Info Stream ALERTS: %v", err) // Log juste l'info si existe déjà
+    } else {
+        log.Println("Stream 'ALERTS' initialisé avec succès.")
+    }
 }
 
 // Fonction pour écouter (Consumer)
