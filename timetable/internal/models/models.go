@@ -15,6 +15,7 @@ type Event struct {
 	End         time.Time   `json:"end"`
 	Location    string      `json:"location"`
 	LastUpdate  time.Time   `json:"lastUpdate"`
+	IncomingAgendaID string `json:"agenda_id"`
 }
 
 type EventAgenda struct {

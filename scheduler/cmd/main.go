@@ -72,8 +72,12 @@ func runJob(ctx context.Context) {
 		}
 
 		for _, c := range courses {
-			publishToNats(c)
-		}
+            if a.Id != nil {
+                c.AgendaID = a.Id.String()
+            }
+            
+            publishToNats(c)
+        }
 	}
 }
 

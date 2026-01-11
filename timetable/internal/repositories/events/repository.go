@@ -114,20 +114,53 @@ func GetEventById(id uuid.UUID) (*models.Event, error) {
 // Consumer NATS fait les Create, Update et Read (avec le UID)
 
 func GetEventByUID(uid string) (*models.Event, error) {
-	db, err := helpers.OpenDB()
-	if err != nil {
-		return nil, err
-	}
-	defer helpers.CloseDB(db)
+    db, err := helpers.OpenDB()
+    if err != nil {
+        return nil, err
+    }
+    defer helpers.CloseDB(db)
 
-	row := db.QueryRow("SELECT id, uid, description, name, start, end, location, lastUpdate FROM events WHERE uid=?", uid)
+    // 1. On récupère les infos de l'événement
+    row := db.QueryRow("SELECT id, uid, description, name, start, end, location, lastUpdate FROM events WHERE uid=?", uid)
 
-	var ev models.Event
-	err = row.Scan(&ev.Id, &ev.Uid, &ev.Description, &ev.Name, &ev.Start, &ev.End, &ev.Location, &ev.LastUpdate)
-	if err != nil {
-		return nil, err // retourne une erreur si non trouvé, c'est ce qu'on veut
-	}
-	return &ev, nil
+    var ev models.Event
+    err = row.Scan(&ev.Id, &ev.Uid, &ev.Description, &ev.Name, &ev.Start, &ev.End, &ev.Location, &ev.LastUpdate)
+    if err != nil {
+        return nil, err
+    }
+
+    rows, err := db.Query("SELECT agendaId FROM eventAgendas WHERE eventId = ?", ev.Id.String())
+    if err != nil {
+        // Si erreur ici, on renvoie quand même l'event mais sans agendas, ou une erreur selon ta préférence
+        return &ev, nil 
+    }
+    defer rows.Close()
+
+    var agendaIds []uuid.UUID
+    for rows.Next() {
+        var agendaId uuid.UUID
+        if err := rows.Scan(&agendaId); err == nil {
+            agendaIds = append(agendaIds, agendaId)
+        }
+    }
+    
+    ev.AgendaIds = agendaIds
+
+    return &ev, nil
+}
+
+// Ajoute un lien entre un événement et un agenda (si le lien n'existe pas déjà)
+func AddEventAgenda(eventId string, agendaId string) error {
+    db, err := helpers.OpenDB()
+    if err != nil {
+        return err
+    }
+    defer helpers.CloseDB(db)
+
+    query := `INSERT OR IGNORE INTO eventAgendas (eventId, agendaId) VALUES (?, ?)`
+    
+    _, err = db.Exec(query, eventId, agendaId)
+    return err
 }
 
 func CreateEvent(ev *models.Event) error {

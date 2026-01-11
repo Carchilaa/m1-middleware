@@ -49,30 +49,28 @@ func EventConsumer() (jetstream.Consumer, error) {
 // Consume lance la boucle d'écoute
 func Consume(consumer jetstream.Consumer) (err error) {
 
-
-	//On recupere le contexte JetStream pour pouvoir publier des alertes
-	js, _ := jetstream.New(helpers.NatsConn)
-	ctx := context.Background() 
-	logrus.Info("Démarrage du traitement des messages...")
+    // On récupère le contexte JetStream pour pouvoir publier des alertes
+    js, _ := jetstream.New(helpers.NatsConn)
+    ctx := context.Background() 
+    logrus.Info("Démarrage du traitement des messages...")
     
-	cc, err := consumer.Consume(func(msg jetstream.Msg) {
-        // 1. On accuse réception tout de suite (ou à la fin, au choix)
-		_ = msg.Ack()
+    cc, err := consumer.Consume(func(msg jetstream.Msg) {
+        // 1. On accuse réception tout de suite
+        _ = msg.Ack()
 
         // 2. Décodage
-		var incomingEvent models.Event
-		err := json.Unmarshal(msg.Data(), &incomingEvent)
-		if err != nil {
-			logrus.Errorf("Erreur décodage JSON: %v", err)
-			return // On sort, tant pis pour ce message mal formé
-		}
+        var incomingEvent models.Event
+        err := json.Unmarshal(msg.Data(), &incomingEvent)
+        if err != nil {
+            logrus.Errorf("Erreur décodage JSON: %v", err)
+            return 
+        }
 
         // 3. Logique Métier (Check BDD)
-		existingEvent, err := repository.GetEventByUID(incomingEvent.Uid)
+        existingEvent, err := repository.GetEventByUID(incomingEvent.Uid)
 
-		if err != nil {
-			// -> NOUVEAU COURS
-			logrus.Infof("[AJOUT] Nouveau cours reçu : %s", incomingEvent.Name)
+        if err != nil {
+            logrus.Infof("[AJOUT] Nouveau cours reçu : %s", incomingEvent.Name)
             
             if incomingEvent.Id == nil {
                 uid, _ := uuid.NewV4()
@@ -80,54 +78,58 @@ func Consume(consumer jetstream.Consumer) (err error) {
             }
             incomingEvent.LastUpdate = time.Now()
             
-			_ = repository.CreateEvent(&incomingEvent)
+            _ = repository.CreateEvent(&incomingEvent)
 
-		} else {
-			// -> COURS EXISTANT : On cherche les modifs
+            if incomingEvent.IncomingAgendaID != "" {
+                _ = repository.AddEventAgenda(incomingEvent.Id.String(), incomingEvent.IncomingAgendaID)
+            }
+
+        } else {
+            if incomingEvent.IncomingAgendaID != "" {
+                _ = repository.AddEventAgenda(existingEvent.Id.String(), incomingEvent.IncomingAgendaID)
+            }
+
             hasChanged := false
             var alerteMsg string
 
             // changement de salle
             if incomingEvent.Location != existingEvent.Location {
-				alerteMsg = "Changement de salle: " + existingEvent.Location + " -> " + incomingEvent.Location
-                logrus.Warnf("ALERTE : Changement de salle pour %s (%s -> %s)", 
-                    incomingEvent.Name, existingEvent.Location, incomingEvent.Location)
+                alerteMsg = "Changement de salle: " + existingEvent.Location + " -> " + incomingEvent.Location
+                logrus.Warnf("ALERTE : Changement de salle pour %s", incomingEvent.Name)
                 hasChanged = true
-                
-                // TODO: envoie d'un message NATS vers Alerter
             }
             
             // changement d'heure
             if !incomingEvent.Start.Equal(existingEvent.Start) {
-				alerteMsg = "Changement d'horaire pour " + incomingEvent.Name
+                alerteMsg = "Changement d'horaire pour " + incomingEvent.Name
                  logrus.Warnf("ALERTE : Changement d'horaire pour %s", incomingEvent.Name)
                  hasChanged = true
-
-				 // TODO: envoie d'un message NATS vers Alerter
             }
 
             if hasChanged {
                 incomingEvent.LastUpdate = time.Now()
+                incomingEvent.Id = existingEvent.Id 
+                
                 _ = repository.UpdateEvent(&incomingEvent)
 
-				alertPayload := models.AlertMessage{
-					AgendaIds: existingEvent.AgendaIds, 
-					EventName: incomingEvent.Name,
-					Message:   alerteMsg,
-				}
+                alertPayload := models.AlertMessage{
+                    AgendaIds: existingEvent.AgendaIds,
+                    EventName: incomingEvent.Name,
+                    Message:   alerteMsg,
+                }
 
-				payloadBytes, _ := json.Marshal(alertPayload)
+                payloadBytes, _ := json.Marshal(alertPayload)
 
-				_, errPublish := js.Publish(ctx, "ALERTS.modification", payloadBytes)
-				if errPublish != nil{
-					logrus.Errorf("Erreur publication alerte NATS: %s", errPublish)
-				}else{
-					logrus.Infof("Alerte publiee vers le NATS pour %s", incomingEvent.Name)
-				}
+                _, errPublish := js.Publish(ctx, "ALERTS.modification", payloadBytes)
+                if errPublish != nil{
+                    logrus.Errorf("Erreur publication alerte NATS: %s", errPublish)
+                } else {
+                    logrus.Infof("Alerte publiee vers le NATS pour %s", incomingEvent.Name)
+                }
             }
-		}
-	})
+        }
+    })
 
-	<-cc.Closed()
-	return err
+    <-cc.Closed()
+    return err
 }

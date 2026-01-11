@@ -41,46 +41,52 @@ func StartAlerterConsumer(nc *nats.Conn) {
 
 	// 3. Boucle de consommation
 	cc, _ := consumer.Consume(func(msg jetstream.Msg) {
-		msg.Ack()
+        msg.Ack()
 
-		// A. Décoder le message
-		var alertMsg models.Modification
-		if err := json.Unmarshal(msg.Data(), &alertMsg); err != nil {
-			logrus.Errorf("Alerter: Erreur JSON: %v", err)
-			return
-		}
+        var alertMsg models.Modification
+        if err := json.Unmarshal(msg.Data(), &alertMsg); err != nil {
+            logrus.Errorf("Alerter: Erreur JSON: %v", err)
+            return
+        }
 
-		logrus.Infof("Alerter: Reçu modif pour Agenda %s", alertMsg.AgendaID)
+        logrus.Infof("Alerter: Reçu modif pour Agendas : %v", alertMsg.AgendaIDs)
 
-		// B. Récupérer les abonnés via l'API Config
-		subscribers, err := getSubscribers(alertMsg.AgendaID)
-		if err != nil {
-			logrus.Errorf("Alerter: Erreur API Config: %v", err)
-			return
-		}
+        if len(alertMsg.AgendaIDs) == 0 {
+            logrus.Warn("Alerter: Aucun agenda associé à cet événement (liste vide).")
+            return
+        }
 
-		if len(subscribers) == 0 {
-			logrus.Infof("Aucun abonné pour l'agenda %s", alertMsg.AgendaID)
-			return
-		}
+        for _, agendaID := range alertMsg.AgendaIDs {
+            
+            // 1. Récupérer les abonnés pour CET agenda précis
+            subscribers, err := getSubscribers(agendaID)
+            if err != nil {
+                // On log l'erreur mais on continue pour les autres agendas
+                logrus.Errorf("Alerter: Erreur API Config pour agenda %s : %v", agendaID, err)
+                continue 
+            }
 
-		// C. Préparer le contenu du mail (Template)
-        // Assure-toi d'avoir "templates/notification.html" dans ton dossier
-		bodyContent, subject, err := parseTemplate("alert.html", alertMsg)
-		if err != nil {
-			logrus.Errorf("Alerter: Erreur Template: %v", err)
-			return
-		}
+            if len(subscribers) == 0 {
+                continue
+            }
 
-		// D. Envoyer un mail à chaque abonné
-		for _, sub := range subscribers {
-			err := sendMail(sub.Email, subject, bodyContent)
-			if err != nil {
-				logrus.Errorf("Alerter: Echec envoi mail à %s : %v", sub.Email, err)
-			} else {
-				logrus.Infof("Alerter: Mail envoyé à %s", sub.Email)
-			}
-		}
+            // 2. Préparer le mail
+            bodyContent, subject, err := parseTemplate("alert.txt", alertMsg)
+            if err != nil {
+                logrus.Errorf("Alerter: Erreur Template: %v", err)
+                return
+            }
+
+            // 3. Envoyer aux abonnés de CET agenda
+            for _, sub := range subscribers {
+                err := sendMail(sub.Email, subject, bodyContent)
+                if err != nil {
+                    logrus.Errorf("Alerter: Echec envoi à %s", sub.Email)
+                } else {
+                    logrus.Infof("Alerter: Mail envoyé à %s (Agenda %s)", sub.Email, agendaID)
+                }
+            }
+        }
 	})
 
 	<-cc.Closed()
